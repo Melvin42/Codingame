@@ -15,12 +15,14 @@ using namespace std;
 #define XMAX 17630
 #define YMAX 9000
 
-class Entity;
-class Monster;
-class Hero;
-class Base;
+class	Entity;
+class	Monster;
+class	Hero;
+class	Base;
 
-int g_turn = 0;
+static int	g_turn = 0;
+static int	g_i = 0;
+static int	g_iga = 0;
 
 Monster	&monsterClosest(vector<Monster> &monster);
 bool isEnnemyIn(vector<Hero> &hero, Base &base);
@@ -30,14 +32,14 @@ enum e_type { TYPE_MONSTER, TYPE_MY_HERO, TYPE_OP_HERO };
 enum e_name { GIMLI, GANDOULF, ARAGORN };
 
 struct s_target {
-	int pos_x;
-	int pos_y;
-	int score_wind;
-	int score_attack;
-	int score_control;
-	int score_shield;
-	int score_wait;
-	int id;
+	int	pos_x;
+	int	pos_y;
+	int	score_wind;
+	int	score_attack;
+	int	score_control;
+	int	score_shield;
+	int	score_wait;
+	int	id;
 };
 
 class Base {
@@ -49,15 +51,15 @@ class Base {
 			*this = base;
 		};
 
-		int getHealth() const { return health; }
-		int getMana() const { return mana; }
+		int	getHealth() const { return health; }
+		int	getMana() const { return mana; }
 
-		int x;
-		int y;
-		int health;
-		int mana;
-		int side;
-		int ennemy_in;
+		int	x;
+		int	y;
+		int	health;
+		int	mana;
+		int	side;
+		int	ennemy_in;
 
 		Base    &operator=(const Base &base) {
 			x = base.x;
@@ -87,10 +89,10 @@ class Entity {
 		};
 
 		struct s_target target;
-		int dist_from_base;
-		int dist_from_ennemy_base;
+		int	dist_from_base;
+		int	dist_from_ennemy_base;
 
-		void setTarget(struct s_target target) {            
+		void setTarget(struct s_target target) {
 			this->target.id = target.id;
 			this->target.pos_x = target.pos_x;
 			this->target.pos_y = target.pos_y;
@@ -315,6 +317,9 @@ class Hero : public Entity {
 			this->target.score_control = 0;
 			this->target.score_wait = 0;
 			Base tmp;
+			vector<Monster> vec;
+
+			this->checkpoint = vec;
 			this->base = tmp;
 			name = "";
 			dist_from_base = 0;
@@ -335,6 +340,7 @@ class Hero : public Entity {
 				this->target.score_wait = 0;
 				name = "";
 				Base tmp;
+				vector<Monster> checkpoint;
 				this->base = tmp;
 				dist_from_base = 0;
 				dist_from_ennemy_base = 0;
@@ -345,6 +351,7 @@ class Hero : public Entity {
 		}
 		string name;
 		Base base;
+		vector<Monster>	checkpoint;
 
 		void setName(int i) {
 			switch (i) {
@@ -358,22 +365,22 @@ class Hero : public Entity {
 					name = "ARAGORN";
 					break;
 			}
-		};
+		}
 		void move() const {
 			cout << "MOVE " << this->target.pos_x << " " << this->target.pos_y << " " << name << endl;
-		};
+		}
 		void wind(Base &base) const {
 			base.mana -= 10;
 			cout << "SPELL WIND " << XMAX - this->base.x << " " << YMAX - this->base.y <<  " " << name << endl;
-		};
+		}
 		void shield(int id, Base &base) const {
 			base.mana -= 10;
 			cout << "SPELL SHIELD " << id << " " << name << " Boubou" << endl;
-		};
+		}
 		void control(int id, Base &base) const {
 			base.mana -= 10;
 			cout << "SPELL CONTROL " << id << " " << this->target.pos_x << " " << this->target.pos_y <<  " " << name << endl;
-		};
+		}
 		void wait() const { cout << "WAIT " << "Repos" << endl; };
 
 		int	bestAttackScore(vector<Monster> monsters) {
@@ -384,7 +391,7 @@ class Hero : public Entity {
 			}
 			sort(vect.begin(), vect.end());
 			return  vect[vect.size() - 1];
-		};
+		}
 
 		int	bestWindScore(vector<Monster> monsters) {
 			vector<int>	vect;
@@ -394,7 +401,7 @@ class Hero : public Entity {
 			}
 			sort(vect.begin(), vect.end());
 			return  vect[vect.size() - 1];
-		};
+		}
 
 		int	bestShieldScore(vector<Monster> monsters) {
 			vector<int>	vect;
@@ -404,7 +411,7 @@ class Hero : public Entity {
 			}
 			sort(vect.begin(), vect.end());
 			return  vect[vect.size() - 1];
-		};
+		}
 
 		int	bestControlScore(vector<Monster> monsters) {
 			vector<int>	vect;
@@ -414,7 +421,7 @@ class Hero : public Entity {
 			}
 			sort(vect.begin(), vect.end());
 			return  vect[vect.size() - 1];
-		};
+		}
 
 		void	choseAction(string str, struct s_target target, Base &base) {
 			this->setTarget(target);
@@ -430,7 +437,7 @@ class Hero : public Entity {
 			} else {
 				this->wait();
 			}
-		};
+		}
 
 		struct s_target getTarget(vector<Monster> &monsters, string type_action, int score) {
 			for (int i = 0; i < monsters.size(); i++) {
@@ -452,7 +459,7 @@ class Hero : public Entity {
 				}
 			}
 			return monsters[0].target;
-		};
+		}
 
 		void	choseBestAction(vector<Monster> &monsters, Base &base) {
 			unordered_map<string, int> map;
@@ -514,7 +521,7 @@ class Hero : public Entity {
 		*/
 
 		bool	canSpellTarget(const Monster &monster) {
-			if (this->base.getMana() > 10
+			if (this->base.getMana() >= 10
 					&& monster.getDistFromPoint(this->getX(), this->getY()) < 1280
 					&& monster.getShieldLife() == 0
 					&& g_turn >= SPELL)
@@ -542,36 +549,28 @@ class Hero : public Entity {
 			int closest = 0;
 			int monster_in_base = 0;
 
-			if (monsters.size() == 0) {
-				this->target.pos_x = this->base.x + (start_x * this->base.side);
-				this->target.pos_y = this->base.y + (start_y * this->base.side);
-				this->move();
-			} else {
+			if (monsters.size() > 0) {
 				closest = monsters[0].dist_from_base;
 				for (int j = 0; j < monsters.size(); j++) {
 					if (monsters[j].getThreatFor() == 1) {
-						if (this->canSpellTarget(monsters[j]) && this->base.getMana() > 30)
-							monsters[j].upScoreWind(1);
 						monsters[j].upScoreAttack(1);
 					}
 					if (monsters[j].getNearBase() == 1) {
-						monster_in_base++;
-					}
-					if (monsters[j].dist_from_base < 10000){
-						monsters[j].upScoreAttack(1);
-						if (monsters[j].getThreatFor() == 1) {
+						if (monsters[j].dist_from_base > 4800 && monsters[j].dist_from_base < 5000) {
+							if (this->canSpellTarget(monsters[j]))
+								monsters[j].upScoreControl(1);
+						}
+						if (monsters[j].getShieldLife() > 0) {
 							monsters[j].upScoreAttack(1);
 						}
-						if (monsters[j].getNearBase() == 1) {
-							if (monsters[j].dist_from_base > 4800 && monsters[j].dist_from_base < 5000) {
-								if (this->canSpellTarget(monsters[j]))
-									monsters[j].upScoreControl(1);
-							}
-							if (monsters[j].getShieldLife() > 0) {
-								monsters[j].upScoreAttack(1);
-							}
-							if (this->canSpellTarget(monsters[j]) && this->base.getMana() > 30)
-								monsters[j].upScoreWind(1);
+						if (this->canSpellTarget(monsters[j]) && this->base.getMana() > 30)
+							monsters[j].upScoreWind(1);
+						monsters[j].upScoreAttack(1);
+						monster_in_base++;
+					}
+					if (monsters[j].dist_from_base > 5000 && monsters[j].dist_from_base < 10000) {
+						monsters[j].upScoreAttack(1);
+						if (monsters[j].getThreatFor() == 1) {
 							monsters[j].upScoreAttack(1);
 						}
 						if (monsters[j].dist_from_base <= 3000)
@@ -581,31 +580,13 @@ class Hero : public Entity {
 						}
 					}
 				}
-				//SHIEEEEEEEELDDDDDDDD
-				if (isEnnemyIn(op_hero, this->base) && base[1].getMana() > 30) {
-					int shield_my_friend = 0;
-					for (int j = 0; j < op_hero.size(); j++) {
-						if (op_hero[j].getDistFromPoint(this->getX(), this->getY()) < 1280
-							&& op_hero[j].dist_from_base < 6000)
-							shield_my_friend = 1;
-					}
-					if (shield_my_friend) {
-						for (int j = 0; j < hero.size(); j++) {
-							if (j == GANDOULF && this->base.getMana() > 10
-									&& this->getShieldLife() == 0) {
-								Monster tmp;
-
-								tmp.resetTarget();
-								tmp.target.id = hero[j].getId();
-								tmp.target.pos_x = hero[j].getX();
-								tmp.target.pos_y = hero[j].getY();
-								tmp.upScoreShield(200);
-								monsters.push_back(tmp);
-							}
-						}
-					}
+				//Attack nearest
+				for (int j = 0; j < monsters.size(); j++) {
+					if (monsters[j].getDistFromPoint(this->getX(), this->getY()) < 2000)
+						monsters[j].upScoreAttack(1);
 				}
-				if (monster_in_base >= 1) {
+				//go back if too much monster in base
+				if (monster_in_base >= 4) {
 					for (int j = 0; j < monsters.size(); j++) {
 						if (monsters[j].getNearBase() == 1) {
 							if (this->canSpellTarget(monsters[j])) {
@@ -613,26 +594,27 @@ class Hero : public Entity {
 							}
 							monsters[j].upScoreAttack(1);
 						}
-					}
-				}
-				if (nbr_closes > 1) {
-					for (int j = 0; j < monsters.size(); j++) {
-						if (monsters[j].dist_from_base <= 3000) {
-							if (this->canSpellTarget(monsters[j]))
-								monsters[j].upScoreWind(3);
-							monsters[j].upScoreAttack(3);
+						if (closest < 3000) {
+							for (int j = 0; j < monsters.size(); j++) {
+								if (monsters[j].dist_from_base == closest) {
+									if (this->canSpellTarget(monsters[j]))
+										monsters[j].upScoreWind(3);
+									monsters[j].upScoreAttack(0);
+								}
+							}
 						}
 					}
 				}
-				if (closest < 3000) {
+				if (nbr_closes > 5) {
 					for (int j = 0; j < monsters.size(); j++) {
-						if (monsters[j].dist_from_base == closest) {
+						if (monsters[j].dist_from_base <= 5000) {
 							if (this->canSpellTarget(monsters[j]))
 								monsters[j].upScoreWind(3);
-							monsters[j].upScoreAttack(3);
+							monsters[j].upScoreAttack(1);
 						}
 					}
 				}
+				//go defend on the closest
 				for (int k = 0; k < monsters.size(); k++) {
 					for (int j  = 0; j < hero.size(); j++) {
 						if (j == GIMLI) {
@@ -643,7 +625,34 @@ class Hero : public Entity {
 						}
 					}
 				}
-				this->choseBestAction(monsters, base[0]);
+				int no_action = 0;
+				for (int j = 0; j < monsters.size(); j++) {
+					if (monsters[j].target.score_attack != 0 || monsters[j].target.score_wind != 0
+							|| monsters[j].target.score_control != 0 || monsters[j].target.score_shield != 0)
+						no_action++;
+				}
+				if (no_action == 0){
+					cerr << "NO ACTION!!!" << endl;
+					Monster	tmp;
+
+					tmp.resetTarget();
+					tmp.upScoreAttack(200);
+					if (g_iga == 0 && this->getDistFromPoint(this->checkpoint[g_iga].target.pos_x,
+								this->checkpoint[g_iga].target.pos_y) < 1000)
+						g_iga = 1;
+					else if (g_iga == 1 && this->getDistFromPoint(this->checkpoint[g_iga].target.pos_x,
+								this->checkpoint[g_iga].target.pos_y) < 1000)
+						g_iga = 0;
+					cerr << "INDEX =" << g_iga << endl;
+					tmp.target.pos_x = this->checkpoint[g_iga].target.pos_x;
+					tmp.target.pos_y = this->checkpoint[g_iga].target.pos_y;
+					monsters.push_back(tmp);
+				}
+				this->choseBestAction(monsters, this->base);
+			} else {
+				this->target.pos_x = this->checkpoint[g_iga].target.pos_x;
+				this->target.pos_y = this->checkpoint[g_iga].target.pos_y;
+				this->move();
 			}
 		}
 
@@ -663,10 +672,10 @@ class Hero : public Entity {
 				for (int j = 0; j < monsters.size(); j++) {
 					if (monsters[j].getNearBase() == 1) {
 						monster_in_base++;
-						if (this->canSpellTarget(monsters[j]) && this->dist_from_base < 6000) {
+						if (this->canSpellTarget(monsters[j]) && this->dist_from_base < 2500) {
 							monsters[j].upScoreWind(2);
 						}
-						monsters[j].upScoreAttack(2);
+						monsters[j].upScoreAttack(1);
 					}
 					if (monsters[j].dist_from_base < 5000) {
 						if (monsters[j].getThreatFor() == 1 && this->dist_from_base < 1500) {
@@ -705,14 +714,12 @@ class Hero : public Entity {
 				//force attack closest monster
 				for (int j = 0; j < monsters.size(); j++) {
 					if (monsters[j].dist_from_base == closest) {
-//						cerr << "CLOSEST = " << monsters[j].getId() << endl;
-						if (this->canSpellTarget(monsters[j]) && this->dist_from_base < 6000) {
-							monsters[j].upScoreWind(5);
+						if (this->canSpellTarget(monsters[j]) && this->dist_from_base < 2000) {
+							monsters[j].upScoreWind(10);
 						}
 						monsters[j].upScoreAttack(5);
 					}
 				}
-				//	monsters[this->shortest(monsters, base[0], 3000)].upScoreAttack(5);
 				if (monster_in_base >= 1) {
 					for (int j = 0; j < monsters.size(); j++) {
 						if (monsters[j].getNearBase() == 1) {
@@ -734,7 +741,7 @@ class Hero : public Entity {
 					}
 					if (shield_my_friend) {
 						for (int j = 0; j < hero.size(); j++) {
-							if (j == GIMLI && this->base.getMana() > 10
+							if (j == GIMLI && this->base.getMana() > 10 && this->getShieldLife() == 0
 									&& this->getDistFromPoint(hero[j].getX(), hero[j].getY()) < 1280) {
 								Monster tmp;
 
@@ -746,6 +753,12 @@ class Hero : public Entity {
 								monsters.push_back(tmp);
 							}
 						}
+					}
+				}
+				//Dont go to far away
+				for (int j = 0; j < monsters.size(); j++) {
+					if (monsters[j].dist_from_base > 6500) {
+						monsters[j].resetAllScore();
 					}
 				}
 				// check if another hero is already on target
@@ -789,8 +802,8 @@ class Hero : public Entity {
 		}
 
 		void	aragornAction(vector<Monster> &monsters, vector<Hero> &hero, vector<Hero> &op_hero, vector<Base> base) {
-			int start_x = 12500;
-			int start_y = 6400;
+//			int start_x = 10500;
+//			int start_y = 7000;
 			int near_base_ennemy = 0;
 
 			if (monsters.size() > 0) {
@@ -858,7 +871,8 @@ class Hero : public Entity {
 					}
 				}
 				for (int j = 0; j < monsters.size(); j++) {
-					if (monsters[j].getDistFromPoint(this->getX(), this->getY()) < 500 && this->canAttack(monsters[j]))
+					if (monsters[j].getDistFromPoint(this->getX(), this->getY()) < 500
+							&& this->canAttack(monsters[j]) && monsters[j].getShieldLife() == 0)
 						monsters[j].upScoreAttack(1);
 				}
 				//Don't do nothing
@@ -868,41 +882,34 @@ class Hero : public Entity {
 				}
 				int no_action = 0;
 				for (int j = 0; j < monsters.size(); j++) {
-					if (monsters[j].dist_from_ennemy_base > 5000 && monsters[j].dist_from_ennemy_base < 10000) {
-						if (monsters[j].getShieldLife() == 0 && this->canAttack(monsters[j]))
+					if (monsters[j].dist_from_ennemy_base > 6000 && monsters[j].dist_from_ennemy_base < 10000) {
+						if (monsters[j].getShieldLife() == 0 && this->canAttack(monsters[j])) {
 							monsters[j].upScoreAttack(1);
-						no_action++;
+							no_action++;
+						}
 					}
 				}
 				if (no_action == 0){
-					Monster	tmp;
 					cerr << "NO ACTION!!!" << endl;
+					Monster	tmp;
 
-					int notimeout = 0;
 					tmp.resetTarget();
 					tmp.upScoreAttack(200);
-					tmp.target.pos_x = ((rand() + (12000 * this->base.side)) % XMAX);
-					tmp.target.pos_y = rand() % YMAX;
-					cerr << tmp.target.pos_x << " " << tmp.target.pos_y << endl;
-					tmp.dist_from_ennemy_base = tmp.getDistFromPoint(base[1].x, base[1].y);
-					while (tmp.dist_from_ennemy_base < 5000) {
-						tmp.target.pos_x = ((rand() + (12000 * this->base.side)) % XMAX);
-						tmp.target.pos_y = rand() % YMAX;
-						cerr << tmp.target.pos_x << " " << tmp.target.pos_y << endl;
-						tmp.dist_from_ennemy_base = tmp.getDistFromPoint(base[1].x, base[1].y);
-						notimeout++;
-						if (notimeout == 10) {
-							tmp.target.pos_x = this->base.x + (start_x * this->base.side);
-							tmp.target.pos_y = this->base.y + (start_y * this->base.side);
-							break ;
-						}
-					}
+					if (g_i == 0 && this->getDistFromPoint(this->checkpoint[g_i].target.pos_x,
+								this->checkpoint[g_i].target.pos_y) < 1000)
+						g_i = 1;
+					else if (g_i == 1 && this->getDistFromPoint(this->checkpoint[g_i].target.pos_x,
+								this->checkpoint[g_i].target.pos_y) < 1000)
+						g_i = 0;
+					cerr << "INDEX =" << g_i << endl;
+					tmp.target.pos_x = this->checkpoint[g_i].target.pos_x;
+					tmp.target.pos_y = this->checkpoint[g_i].target.pos_y;
 					monsters.push_back(tmp);
 				}
 				this->choseBestAction(monsters, base[0]);
 			} else {
-				this->target.pos_x = this->base.x + (start_x * this->base.side);
-				this->target.pos_y = this->base.y + (start_y * this->base.side);
+				this->target.pos_x = this->checkpoint[0].target.pos_x;
+				this->target.pos_y = this->checkpoint[0].target.pos_y;
 				this->move();
 			}
 		}
@@ -931,6 +938,7 @@ class Hero : public Entity {
 			name = entity.name;
 			dist_from_base = entity.dist_from_base;
 			dist_from_ennemy_base = entity.dist_from_ennemy_base;
+			checkpoint = entity.checkpoint;
 
 			return *this;
 		}
@@ -1068,20 +1076,42 @@ int main() {
 			}
 		}
 		Hero hero;
+		vector<Monster>	save;
+		for (int i = 0; i < monsters.size(); i++) {
+			save.push_back(monsters[i]);
+		}
 		for (int i = 0; i < heroes_per_player; i++) {
 			// In the first league: MOVE <x> <y> | WAIT; In later leagues: | SPELL <spellParams>;
 			if (i == GANDOULF) {
 				hero = my_heroes[GANDOULF];
+				Monster	tmp;
+				tmp.target.pos_x = base_x + 3000 * side;
+				tmp.target.pos_y = base_y + 7000 * side;
+				hero.checkpoint.push_back(tmp);
+				tmp.target.pos_x = base_x + 8600 * side;
+				tmp.target.pos_y = base_y + 1000 * side;
+				hero.checkpoint.push_back(tmp);
 				hero.gandoulfAction(monsters, my_heroes, opp_heroes, base);
 			} else if (i == GIMLI) {
 				hero = my_heroes[GIMLI];
 				hero.gimliAction(monsters, my_heroes, opp_heroes, base);
 			} else if (i == ARAGORN) {
 				hero = my_heroes[ARAGORN];
+				Monster	tmp;
+				tmp.target.pos_x = base_x + 10500 * side;
+				tmp.target.pos_y = base_y + 7000 * side;
+				hero.checkpoint.push_back(tmp);
+				tmp.target.pos_x = base_x + 16000 * side;
+				tmp.target.pos_y = base_y + 2500 * side;
+				hero.checkpoint.push_back(tmp);
 				hero.aragornAction(monsters, my_heroes, opp_heroes, base);
 			}
 			if (monsters.size() > 0) {
 				resetScoreTarget(monsters);
+			}
+			monsters.clear();
+			for (int j = 0; j < save.size(); j++) {
+				monsters.push_back(save[j]);
 			}
 		}
 		monsters.clear();
