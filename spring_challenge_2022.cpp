@@ -473,7 +473,7 @@ class Hero : public Entity {
 
 			cerr << "map " << this->name << " Attack : " << map["attack"] << endl;
 			cerr << "map " << this->name << " Wind : " << map["wind"] << endl;
-//			cerr << "map " << this->name << " Control : " << map["control"] << endl;
+			cerr << "map " << this->name << " Control : " << map["control"] << endl;
 			cerr << "map " << this->name << " shield : " << map["shield"] << endl;
 //			cerr << "map " << this->name << " wait : " << map["wait"] << endl;
 
@@ -488,6 +488,13 @@ class Hero : public Entity {
 			return false;
 		}
 		*/
+
+		bool	canAttack(const Monster &monster) {
+			if (monster.getThreatFor() != 2) {
+				return true;
+			}
+			return false;
+		}
 
 		bool	canShield(const Monster &monster) {
 			if (this->canSpellTarget(monster)) {
@@ -575,17 +582,17 @@ class Hero : public Entity {
 					}
 				}
 				//SHIEEEEEEEELDDDDDDDD
-				if (isEnnemyIn(op_hero, this->base)) {
+				if (isEnnemyIn(op_hero, this->base) && base[1].getMana() > 30) {
 					int shield_my_friend = 0;
 					for (int j = 0; j < op_hero.size(); j++) {
-						if (op_hero[j].getDistFromPoint(this->getX(), this->getY()) < 1280)
+						if (op_hero[j].getDistFromPoint(this->getX(), this->getY()) < 1280
+							&& op_hero[j].dist_from_base < 6000)
 							shield_my_friend = 1;
 					}
 					if (shield_my_friend) {
 						for (int j = 0; j < hero.size(); j++) {
-							if (j != GIMLI && this->base.getMana() > 10
-									&& this->getDistFromPoint(hero[j].getX(), hero[j].getY()) < 1280
-									&& hero[j].getShieldLife() == 0) {
+							if (j == GANDOULF && this->base.getMana() > 10
+									&& this->getShieldLife() == 0) {
 								Monster tmp;
 
 								tmp.resetTarget();
@@ -718,17 +725,17 @@ class Hero : public Entity {
 				}
 				//Protect Defender SHIEEEEEEEEEEEEELDDDDDD
 
-				if (isEnnemyIn(op_hero, this->base)) {
+				if (isEnnemyIn(op_hero, this->base) && base[1].getMana() > 30) {
 					int shield_my_friend = 0;
 					for (int j = 0; j < op_hero.size(); j++) {
-						if (op_hero[j].getDistFromPoint(this->getX(), this->getY()) < 1280)
+						if (op_hero[j].getDistFromPoint(this->getX(), this->getY()) < 1280
+							&& op_hero[j].dist_from_base < 6000)
 							shield_my_friend = 1;
 					}
 					if (shield_my_friend) {
 						for (int j = 0; j < hero.size(); j++) {
 							if (j == GIMLI && this->base.getMana() > 10
-									&& this->getDistFromPoint(hero[j].getX(), hero[j].getY()) < 1280
-									&& hero[j].getShieldLife() == 0) {
+									&& this->getDistFromPoint(hero[j].getX(), hero[j].getY()) < 1280) {
 								Monster tmp;
 
 								tmp.resetTarget();
@@ -789,6 +796,10 @@ class Hero : public Entity {
 			if (monsters.size() > 0) {
 				near_base_ennemy = monsters[0].dist_from_ennemy_base;
 				for (int j = 0; j < monsters.size(); j++) {
+					if (monsters[j].dist_from_ennemy_base < 7000 && monsters[j].getThreatFor() != 2) {
+						if (this->canSpellTarget(monsters[j]) && this->base.getMana() > 50)
+							monsters[j].upScoreControl(2);
+					}
 					if (monsters[j].dist_from_ennemy_base < 5000 && monsters[j].getThreatFor() == 2) {
 						if (this->canSpellTarget(monsters[j])) {
 							if (this->canShield(monsters[j]))
@@ -796,6 +807,11 @@ class Hero : public Entity {
 							monsters[j].upScoreWind(1);
 						}
 					}
+					if (monsters[j].getHealth() > 17 && this->canShield(monsters[j]))
+						monsters[j].upScoreShield(10);
+					if (monsters[j].dist_from_ennemy_base <= 8000)
+						if (this->canSpellTarget(monsters[j]))
+							monsters[j].upScoreWind(1);
 					if (monsters[j].dist_from_ennemy_base < 7000) {
 						if (monsters[j].dist_from_ennemy_base > 0 && monsters[j].dist_from_ennemy_base < 6500) {
 							if (base[0].getMana() > 20 && this->canSpellTarget(monsters[j])) {
@@ -803,13 +819,10 @@ class Hero : public Entity {
 									&& this->canShield(monsters[j]))
 									monsters[j].upScoreShield(10);
 								monsters[j].upScoreWind(1);
-							} else if (monsters[j].getShieldLife() == 0)
+							} else if (monsters[j].getShieldLife() == 0 && this->canAttack(monsters[j]))
 								monsters[j].upScoreAttack(1);
 						}
-						if (monsters[j].getShieldLife() == 0)
-							monsters[j].upScoreAttack(1);
-						if (monsters[j].dist_from_base > 10000) {
-							if (monsters[j].getShieldLife() == 0)
+							if (monsters[j].getShieldLife() == 0 && this->canAttack(monsters[j]))
 								monsters[j].upScoreAttack(1);
 							if (base[0].getMana() > 50 && this->canSpellTarget(monsters[j])) {
 								monsters[j].upScoreWind(1);
@@ -817,21 +830,11 @@ class Hero : public Entity {
 							}
 							if (near_base_ennemy > monsters[j].dist_from_ennemy_base)
 								near_base_ennemy = monsters[j].dist_from_ennemy_base;
-							if (monsters[j].dist_from_ennemy_base < 7000 && monsters[j].getThreatFor() != 2) {
-								if (this->canSpellTarget(monsters[j]) && this->base.getMana() > 30)
-									monsters[j].upScoreControl(2);
-							}
-						}
-						if (monsters[j].dist_from_ennemy_base <= 8000) {
-							if (this->canSpellTarget(monsters[j])) {
-								monsters[j].upScoreWind(1);
-							}
 						}
 						if (monsters[j].getThreatFor() == 2) {
 							if (this->canSpellTarget(monsters[j]))
 								monsters[j].upScoreWind(1);
 						}
-					}
 				}
 				for (int j = 0; j < monsters.size(); j++) {
 					if (monsters[j].dist_from_ennemy_base == near_base_ennemy) {
@@ -846,8 +849,16 @@ class Hero : public Entity {
 						}
 					}
 				}
+				//dont use mana to early
+				if (g_turn <= 70) {
+					for (int j = 0; j < monsters.size(); j++) {
+						monsters[j].target.score_wind = 0;
+						monsters[j].target.score_control = 0;
+						monsters[j].target.score_shield = 0;
+					}
+				}
 				for (int j = 0; j < monsters.size(); j++) {
-					if (monsters[j].getDistFromPoint(this->getX(), this->getY()) < 500)
+					if (monsters[j].getDistFromPoint(this->getX(), this->getY()) < 500 && this->canAttack(monsters[j]))
 						monsters[j].upScoreAttack(1);
 				}
 				//Don't do nothing
@@ -858,7 +869,7 @@ class Hero : public Entity {
 				int no_action = 0;
 				for (int j = 0; j < monsters.size(); j++) {
 					if (monsters[j].dist_from_ennemy_base > 5000 && monsters[j].dist_from_ennemy_base < 10000) {
-						if (monsters[j].getShieldLife() == 0)
+						if (monsters[j].getShieldLife() == 0 && this->canAttack(monsters[j]))
 							monsters[j].upScoreAttack(1);
 						no_action++;
 					}
